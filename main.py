@@ -26,8 +26,10 @@ class Callback(FileSystemEventHandler):
                 except FileExistsError:
                     pass
                 dpid = str(uuid.uuid4())
-                download_ps = subprocess.Popen(["aria2c", "-T", torrent_file_abspath, "-d", new_folder_path, "--file-allocation=falloc", "-V", "true", f'--on-bt-download-complete="python on_complete.py {dpid}"'])
+                devnull = open(os.devnull, "wb")
+                download_ps = subprocess.Popen(["aria2c", "-T", torrent_file_abspath, "-d", new_folder_path, "--file-allocation=falloc", "-V", "true", f'--on-bt-download-complete="python3 on_complete.py {dpid}"'], stdout=devnull, stderr=devnull)
                 data = None
+                print(f"Aria is being runned on PID: {download_ps.pid}")
                 with open("running_ps.json", "w+") as file:
                     data = None
                     try:
