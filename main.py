@@ -14,6 +14,7 @@ class Callback(FileSystemEventHandler):
         parent_parent = os.path.split(parent_parent_dir)[1]
         watch_folder_parent = os.path.split(config["DEFAULT"]["WATCH_FOLDER"])[1]
         torrent_file = os.path.basename(event.key[1])
+        torrent_file_abspath = event.key[1]
 
         if not event.is_directory and torrent_file.endswith('.torrent'):
             if parent != watch_folder_parent and parent_parent == watch_folder_parent:
@@ -23,7 +24,7 @@ class Callback(FileSystemEventHandler):
                 except FileExistsError:
                     pass
                 dpid = str(uuid.uuid4())
-                download_ps = subprocess.Popen(["aria2c", "-T", torrent_file, "-d", new_folder_path, "--file-allocation=falloc", "-V", "true", f'--on-bt-download-complete="python on_complete.py {dpid}"'])
+                download_ps = subprocess.Popen(["aria2c", "-T", torrent_file_abspath, "-d", new_folder_path, "--file-allocation=falloc", "-V", "true", f'--on-bt-download-complete="python on_complete.py {dpid}"'])
                 data = None
                 with open("running_ps.json", "w+") as file:
                     data = None
