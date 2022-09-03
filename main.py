@@ -33,7 +33,7 @@ class Callback(FileSystemEventHandler):
                         data = {}
 
                     if "running_ps" not in data:
-                        data["running_ps"] = download_ps.pid
+                        data["running_ps"] = dpid + ":" + download_ps.pid + ":" + parent
                     else:
                         data["running_ps"] = data["running_ps"] + ";" + dpid + ":" + download_ps
 
