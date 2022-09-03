@@ -16,20 +16,28 @@ class Callback(FileSystemEventHandler):
         torrent_file = os.path.basename(event.key[1])
         torrent_file_abspath = event.key[1]
 
-        print(torrent_file_abspath)
+        print(f"""
+        
+        New file detected
+
+        Filename: {torrent_file}
+        Parent_dir: {parent}       
+        
+        """)
 
         if not event.is_directory and torrent_file.endswith('.torrent'):
             if parent != watch_folder_parent and parent_parent == watch_folder_parent:
                 new_folder_path = os.path.join(config["DEFAULT"]["DOWNLOAD_FOLDER"], parent)
                 try:
                     os.mkdir(new_folder_path)
+                    print(f"File folder is created at {new_folder_path}")
                 except FileExistsError:
                     pass
                 dpid = str(uuid.uuid4())
                 devnull = open(os.devnull, "wb")
                 download_ps = subprocess.Popen(["aria2c", "-T", torrent_file_abspath, "-d", new_folder_path, "--file-allocation=falloc", "-V", "true", f'--on-bt-download-complete="python3 on_complete.py {dpid}"'], stdout=devnull, stderr=devnull)
                 data = None
-                print(f"Aria is being runned on PID: {download_ps.pid}")
+                print(f"Aria is being run at PID: {download_ps.pid}")
                 with open("running_ps.json", "w+") as file:
                     data = None
                     try:
