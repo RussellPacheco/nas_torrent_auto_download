@@ -11,7 +11,7 @@ with open("running_ps.json", "w+") as file:
         ident = id_pair.split(":")
         if sys.argv[1] in ident:
             try:
-                os.kill(ident[1], signal.SIGSTOP)
+                os.kill(int(ident[1]), signal.SIGSTOP)
             except PermissionError:
                 pass
             try: 

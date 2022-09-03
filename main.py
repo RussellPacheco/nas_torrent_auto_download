@@ -33,9 +33,9 @@ class Callback(FileSystemEventHandler):
                         data = {}
 
                     if "running_ps" not in data:
-                        data["running_ps"] = dpid + ":" + download_ps.pid + ":" + parent
+                        data["running_ps"] = f"{dpid}:{download_ps.pid}:{parent}"
                     else:
-                        data["running_ps"] = data["running_ps"] + ";" + dpid + ":" + download_ps
+                        data["running_ps"] = f"{data['running_ps']};{dpid}:{download_ps}"
 
                     file.write(json.dumps(data))
 
