@@ -16,6 +16,8 @@ class Callback(FileSystemEventHandler):
         torrent_file = os.path.basename(event.key[1])
         torrent_file_abspath = event.key[1]
 
+        print(torrent_file_abspath)
+
         if not event.is_directory and torrent_file.endswith('.torrent'):
             if parent != watch_folder_parent and parent_parent == watch_folder_parent:
                 new_folder_path = os.path.join(config["DEFAULT"]["DOWNLOAD_FOLDER"], parent)
