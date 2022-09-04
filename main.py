@@ -16,17 +16,13 @@ class Callback(FileSystemEventHandler):
         torrent_file = os.path.basename(event.key[1])
         torrent_file_abspath = event.key[1]
 
-        print(f"""
-        
-        New file detected
-
-        Filename: {torrent_file}
-        Parent_dir: {parent}       
-        
-        """)
-
         if not event.is_directory and torrent_file.endswith('.torrent'):
             if parent != watch_folder_parent and parent_parent == watch_folder_parent:
+                print(f"""
+                New file detected!
+                  - Filename: {torrent_file}
+                  - Parent_dir: {parent}       
+                """)
                 new_folder_path = os.path.join(config["DEFAULT"]["DOWNLOAD_FOLDER"], parent)
                 try:
                     os.mkdir(new_folder_path)
@@ -35,7 +31,7 @@ class Callback(FileSystemEventHandler):
                     pass
                 dpid = str(uuid.uuid4())
                 devnull = open(os.devnull, "wb")
-                download_ps = subprocess.Popen(["aria2c", "-T", torrent_file_abspath, "-d", new_folder_path, "--file-allocation=falloc", "-V", "true", f'--on-bt-download-complete="python3 on_complete.py {dpid}"', "--log-level=notice", f"--log={dpid}.log", ">>", f"{dpid}_output.log"])
+                download_ps = subprocess.Popen(["aria2c", "-T", torrent_file_abspath, "-d", new_folder_path, "--file-allocation=falloc", "-V", "true", f'--on-bt-download-complete="python3 on_complete.py {dpid}"', "--log-level=notice", f"--log={dpid}.log"])
                 data = None
                 print(f"Aria is being run at PID: {download_ps.pid}")
                 with open("running_ps.json", "w+") as file:
@@ -43,7 +39,8 @@ class Callback(FileSystemEventHandler):
                     try:
                         data = json.load(file)
                     except json.JSONDecodeError:
-                        data = {}
+                        data = {} 
+
 
                     if "running_ps" not in data:
                         data["running_ps"] = f"{dpid}:{download_ps.pid}:{parent}"

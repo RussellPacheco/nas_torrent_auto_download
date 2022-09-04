@@ -19,6 +19,7 @@ for id_pair in dpid_pid_pairs:
             pass
         try: 
             os.rmdir(os.path.join(config["DEFAULT"]["WATCH_FOLDER"], ident[2]))
+            os.rmdir(os.path.join(config["DEFAULT"]["WATCH_FOLDER"], f"{ident[0]}.log"))
         except FileNotFoundError:
             pass
         to_delete = id_pair
