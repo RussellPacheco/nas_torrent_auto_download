@@ -35,7 +35,7 @@ class Callback(FileSystemEventHandler):
                     pass
                 dpid = str(uuid.uuid4())
                 devnull = open(os.devnull, "wb")
-                download_ps = subprocess.Popen(["aria2c", "-T", torrent_file_abspath, "-d", new_folder_path, "--file-allocation=falloc", "-V", "true", f'--on-bt-download-complete="python3 on_complete.py {dpid}"'], stdout=devnull, stderr=devnull)
+                download_ps = subprocess.Popen(["aria2c", "-T", torrent_file_abspath, "-d", new_folder_path, "--file-allocation=falloc", "-V", "true", f'--on-bt-download-complete="python3 on_complete.py {dpid}"'], "--log-level=info")
                 data = None
                 print(f"Aria is being run at PID: {download_ps.pid}")
                 with open("running_ps.json", "w+") as file:
