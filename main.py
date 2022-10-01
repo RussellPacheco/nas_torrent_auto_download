@@ -31,8 +31,8 @@ New file detected!
                 """)
                 new_folder_path = os.path.join(download_folder, parent)
                 self._create_folder(new_folder_path=new_folder_path)
-                #download_ps = self._run_torrent_downloader(dp_uuid=dp_uuid, torrent_file_abspath=torrent_file_abspath, new_folder_path=new_folder_path)
-                download_ps = self._run_test_process(dp_uuid=dp_uuid)
+                download_ps = self._run_torrent_downloader(dp_uuid=dp_uuid, torrent_file_abspath=torrent_file_abspath, new_folder_path=new_folder_path)
+                #download_ps = self._run_test_process(dp_uuid=dp_uuid)
                 self._update_json(dp_uuid=dp_uuid, download_ps=download_ps.pid, parent=parent)
         
 
