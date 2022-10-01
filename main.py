@@ -51,7 +51,7 @@ New file detected!
 
     def _run_torrent_downloader(self, dp_uuid: str, torrent_file_abspath: str, new_folder_path: str):
         #devnull = open(os.devnull, "wb")
-        download_ps = subprocess.Popen(["aria2c", "-T", torrent_file_abspath, "-d", new_folder_path, "--file-allocation=falloc", "-V", "true", f'--on-bt-download-complete="python3 on_complete.py {dp_uuid}"', "--log-level=notice", f"--log={dp_uuid}.log"])
+        download_ps = subprocess.Popen(["aria2c", "-T", torrent_file_abspath, "-d", new_folder_path, "--file-allocation=falloc", "-V", "true", f'--on-bt-download-complete="python3 on_complete.py {dp_uuid}"', "--show-console-readout", "--log-level=notice", f"--log={dp_uuid}.log"])
         print(f"Aria is being run at PID: {download_ps.pid}")
         return download_ps
     
