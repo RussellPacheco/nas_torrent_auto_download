@@ -27,6 +27,7 @@ class Callback(FileSystemEventHandler):
                 print(f"""
 New file detected!
     - Filename: {torrent_file}
+    - Filepath: {torrent_file_abspath}
     - Parent_dir: {parent}       
                 """)
                 new_folder_path = os.path.join(download_folder, parent)
