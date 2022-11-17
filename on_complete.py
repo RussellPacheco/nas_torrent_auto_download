@@ -1,34 +1,25 @@
-import os, json, sys, signal, shutil
+#!/usr/bin/env python3
 
-signal.SIGBREAK
+import os, json, sys, signal, shutil, subprocess
+
 
 data = None
-dp_uuid = sys.argv[1]
-with open("running_ps.json", "r") as file:
+pid = None
+project_root = None
+data_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+
+with open(data_file, "r") as file:
     data = json.load(file)
+    pid = data["pid"]
+try:
+    print(f"\nKilling process: {pid}")
+    if sys.platform == "win32":
+        os.kill(int(pid), signal.SIGBREAK)
+    else:
+        os.kill(int(pid), signal.SIGKILL)
+except PermissionError:
+    pass
 
-dpid_pid_pairs = data["running_ps"].split(";")
-to_delete = None
-for id_pair in dpid_pid_pairs:
-    ident = id_pair.split(":")
-    if dp_uuid in ident:
-        try:
-            print(f"Killing download process for {ident[2]}")
-            if sys.platform == "win32":
-                os.kill(int(ident[1]), signal.SIGBREAK)
-            else:
-                os.kill(int(ident[1]), signal.SIGSTOP)
-        except PermissionError:
-            pass
-        try: 
-            shutil.rmtree(os.path.join(data["watch_folder"], ident[2]))
-            shutil.rmtree(os.path.join(data["watch_folder"], f"{ident[0]}.log"))
-        except FileNotFoundError:
-            pass
-        to_delete = id_pair
-dpid_pid_pairs.remove(to_delete)
-data["running_ps"] = ";".join(dpid_pid_pairs)
-
-with open("running_ps.json", "w") as file:
-    file.write(json.dumps(data))
+on_kill_file = os.path.join(data["project_root"], "on_kill.py")
+subprocess.Popen(["python3", f"{on_kill_file}", str(pid)], start_new_session=True)
 

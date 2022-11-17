@@ -1,4 +1,4 @@
-import os, subprocess, json, uuid, argparse
+import os, subprocess, json, argparse, shutil, stat
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -8,6 +8,7 @@ parser.add_argument("-w", "--watch-path", required=True, help="Set the folder to
 parser.add_argument("-d", "--download-folder", required=True, help="Set the download folder")
 args = parser.parse_args()
 
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 watch_path = os.path.normpath(args.watch_path)
 download_folder = os.path.normpath(args.download_folder)
 
@@ -20,7 +21,6 @@ class Callback(FileSystemEventHandler):
         watch_folder_parent = os.path.split(watch_path)[1]
         torrent_file = os.path.basename(event.key[1])
         torrent_file_abspath = event.key[1]
-        dp_uuid = str(uuid.uuid4())
 
         if torrent_file.endswith('.torrent'):
             if parent != watch_folder_parent and parent_parent == watch_folder_parent:
@@ -31,11 +31,11 @@ New file detected!
                 """)
                 new_folder_path = os.path.join(download_folder, parent)
                 self._create_folder(new_folder_path=new_folder_path)
-                download_ps = self._run_torrent_downloader(dp_uuid=dp_uuid, torrent_file_abspath=torrent_file_abspath, new_folder_path=new_folder_path)
+                download_ps = self._run_torrent_downloader(torrent_file_abspath=torrent_file_abspath, new_folder_path=new_folder_path, watch_folder_parent_path=parent_dir)
                 #download_ps = self._run_test_process(dp_uuid=dp_uuid)
-                self._update_json(dp_uuid=dp_uuid, download_ps=download_ps.pid, parent=parent)
-        
-
+                self._copy_on_complete_files(parent_dir=parent_dir, pid=download_ps.pid)
+                self._update_json(download_pid=download_ps.pid, parent=parent)
+       
     def _create_folder(self, new_folder_path: str):
         try:
             os.mkdir(new_folder_path)
@@ -44,18 +44,32 @@ New file detected!
             pass
         return new_folder_path
 
-    def _run_test_process(self, dp_uuid: str):
-        download_ps = subprocess.Popen(["python", "ongoing_process.py", f"{dp_uuid}"])
+    def _copy_on_complete_files(self, parent_dir, pid):
+        data_file = os.path.join(parent_dir, "data")
+        with open(data_file, "w") as file:
+            data = {
+                "pid": pid,
+                "project_root": PROJECT_ROOT
+            }
+            json.dump(data, file)       
+        on_complete_file = os.path.join(PROJECT_ROOT, "on_complete.py")
+        copied_complete_file = os.path.join(parent_dir, "on_complete.py")
+        shutil.copyfile(on_complete_file, copied_complete_file)
+        os.chmod(copied_complete_file, stat.S_IRWXU)
+
+    def _run_test_process(self):
+        download_ps = subprocess.Popen(["python", "ongoing_process.py"])
         print(f"Test process is being run at PID: {download_ps.pid}")
         return download_ps
 
-    def _run_torrent_downloader(self, dp_uuid: str, torrent_file_abspath: str, new_folder_path: str):
+    def _run_torrent_downloader(self, torrent_file_abspath: str, new_folder_path: str, watch_folder_parent_path: str):
         #devnull = open(os.devnull, "wb")
-        download_ps = subprocess.Popen(["aria2c", "-T", torrent_file_abspath, "-d", new_folder_path, "--file-allocation=falloc", "-V", "true", f'--on-bt-download-complete="python3 on_complete.py {dp_uuid}"', "--show-console-readout=false", "--log-level=notice", f"--log={dp_uuid}.log"])
+        on_complete_file_abspath = os.path.join(watch_folder_parent_path, "on_complete.py")
+        download_ps = subprocess.Popen(["aria2c", "-T", torrent_file_abspath, "-d", new_folder_path, "--file-allocation=falloc", "-V", "true", f'--on-bt-download-complete={on_complete_file_abspath}', "--show-console-readout=false"], start_new_session=True)
         print(f"Aria is being run at PID: {download_ps.pid}")
         return download_ps
     
-    def _update_json(self, dp_uuid: str, download_ps: str, parent: str):
+    def _update_json(self, download_pid: str, parent: str):
         with open("running_ps.json", "w+") as file:
             data = None
             try:
@@ -66,9 +80,9 @@ New file detected!
             data["watch_folder"] = watch_path
 
             if "running_ps" not in data:
-                data["running_ps"] = f"{dp_uuid}:{download_ps}:{parent}"
+                data["running_ps"] = f"{download_pid}:{parent}"
             else:
-                data["running_ps"] = f"{data['running_ps']};{dp_uuid}:{download_ps}"
+                data["running_ps"] = f"{data['running_ps']};{download_pid}:{parent}"
 
             file.write(json.dumps(data))
 
