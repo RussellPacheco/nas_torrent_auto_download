@@ -8,12 +8,6 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 logging.basicConfig(filename=log_file, encoding="utf-8", format="[%(asctime)s] %(message)s", level="INFO", force=True)
 
-json_file = os.path.join(PROJECT_ROOT, "running_ps.json")
-with open(json_file, "r") as file:
-    data = json.load(file)
-
-ID_list = data["running_ps"].split(";")
-
 try: 
     folder_to_delete = parent_dir
     shutil.rmtree(folder_to_delete)
