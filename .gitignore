@@ -2,3 +2,4 @@ env/
 running_ps.json
 for_testing/
 *.torrent
+__pycache__/
