@@ -39,7 +39,7 @@ def copy_on_complete_files(parent_dir, pid, log_file, uuid):
     if "data" in os.listdir(parent_dir):
         with open(data_file, "r") as file:
             data = json.load(file)
-        data["pid"] = f"{data['pid']};{uuid}:{pid}"
+        data["uuidpid"] = f"{data['uuidpid']};{uuid}:{pid}"
         with open(data_file, "w") as file:
             json.dump(data, file)
     else:
