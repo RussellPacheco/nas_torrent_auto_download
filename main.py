@@ -32,13 +32,20 @@ class Callback(FileSystemEventHandler):
     def on_created(self, event):
         time.sleep(2)
         created_file_abspath = event.key[1]
+        parent_folder = os.path.dirname(created_file_abspath)
         created_file = os.path.basename(event.key[1])
         if created_file.endswith(".torrent"):
             parent_dir = os.path.abspath(os.path.join(event.src_path, os.pardir))
             dir_files = os.listdir(parent_dir)
             if f"{created_file}_predownload" not in dir_files:
-                with open(f"{created_file_abspath}_predownload", "w") as file:
-                    file.write("initial_download")
+                try:
+                    with open(f"{created_file_abspath}_predownload", "w") as file:
+                        file.write("initial_download")
+                except PermissionError:
+                    os.chmod(path=parent_folder, mode=int("770", base=8))
+                    with open(f"{created_file_abspath}_predownload", "w") as file:
+                        file.write("initial_download")
+                    pass
             else:
                 self.on_new_file(event)
 
