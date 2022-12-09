@@ -1,4 +1,4 @@
-import os, subprocess, json, argparse, shutil, stat, datetime, logging
+import os, subprocess, json, argparse, shutil, stat, datetime, logging, time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from torrent_process import handle_torrent_download
@@ -26,14 +26,38 @@ watch_path = os.path.normpath(args.watch_path)
 download_folder = os.path.normpath(args.download_folder)
 
 class Callback(FileSystemEventHandler):
+    def on_any_event(self, event):
+        pass
+
     def on_created(self, event):
-        parent_dir = os.path.abspath(os.path.join(event.src_path, os.pardir))
+        time.sleep(2)
+        created_file_abspath = event.key[1]
+        created_file = os.path.basename(event.key[1])
+        if created_file.endswith(".torrent"):
+            parent_dir = os.path.abspath(os.path.join(event.src_path, os.pardir))
+            dir_files = os.listdir(parent_dir)
+            if f"{created_file}_predownload" not in dir_files:
+                with open(f"{created_file_abspath}_predownload", "w") as file:
+                    file.write("initial_download")
+            else:
+                self.on_new_file(event)
+
+    def on_moved(self, event):
+        self.on_new_file(event)
+        
+    def on_new_file(self, event):
+        parent_dir = None
+        if event.event_type == "created":
+            parent_dir = os.path.abspath(os.path.join(event.src_path, os.pardir))
+            torrent_file_abspath = event.key[1]
+        if event.event_type == "moved":
+            parent_dir = os.path.abspath(os.path.join(event.dest_path, os.pardir))
+            torrent_file_abspath = event.key[2]
         parent = os.path.split(parent_dir)[1]
         parent_parent_dir = os.path.abspath(os.path.join(parent_dir, os.pardir))
         parent_parent = os.path.split(parent_parent_dir)[1]
         watch_folder_parent = os.path.split(watch_path)[1]
         torrent_file = os.path.basename(event.key[1])
-        torrent_file_abspath = event.key[1]
         new_folder_path = os.path.join(download_folder, parent)
 
         if torrent_file.endswith('.torrent'):
@@ -51,6 +75,8 @@ class Callback(FileSystemEventHandler):
                     "log_level": log_level
                 }
                 handle_torrent_download.delay(torrent_task_details)
+        
+
 
 observer = Observer()
 callback = Callback()
